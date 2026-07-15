@@ -1,0 +1,1116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Checkout CRO Audit — Zip</title>
+<style>
+  :root {
+    --confidence: #1a0826;
+    --purple: #6542be;
+    --fearless: #aa8fff;
+    --gray-800: #544a5a;
+    --gray-500: #c6c3c5;
+    --gray-400: #e2e1df;
+    --gray-200: #f0eef2;
+    --white: #ffffff;
+    --font: "Sharp Grotesk 20", Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 100%; height: 100%; overflow: hidden; font-family: var(--font); background: var(--gray-200); }
+
+  .deck { width: 100%; height: 100vh; position: relative; overflow: hidden; }
+  .slide { position: absolute; inset: 0; display: flex; flex-direction: column; opacity: 0; pointer-events: none; transition: opacity 0.35s ease; overflow-y: auto; background: var(--gray-200); color: var(--confidence); }
+  .slide.active { opacity: 1; pointer-events: all; }
+
+  .slide-tag { position: absolute; top: 32px; left: 44px; font-size: 11px; font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase; color: var(--confidence); opacity: 0.4; }
+  .slide-num { position: absolute; top: 32px; right: 44px; font-size: 11px; font-weight: 500; color: var(--confidence); opacity: 0.3; font-variant-numeric: tabular-nums; }
+
+  .body { flex: 1; display: flex; flex-direction: column; padding: 84px 96px 108px; justify-content: center; }
+  .body--center { align-items: center; text-align: center; }
+  .body--two { flex: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 64px; padding: 84px 88px 108px; align-items: center; }
+  .body--wide { flex: 1; display: flex; flex-direction: column; padding: 80px 128px 108px; justify-content: center; }
+
+  .t-eyebrow { font-size: 12px; font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase; opacity: 0.45; margin-bottom: 18px; color: var(--purple); }
+  .t-display  { font-size: clamp(44px, 6vw, 88px); font-weight: 500; line-height: 1.02; letter-spacing: -0.025em; }
+  .t-headline { font-size: clamp(30px, 3.8vw, 56px); font-weight: 500; line-height: 1.12; letter-spacing: -0.02em; }
+  .t-title    { font-size: clamp(20px, 2.4vw, 32px); font-weight: 500; line-height: 1.2; letter-spacing: -0.015em; }
+  .t-body     { font-size: 17px; line-height: 1.65; color: var(--gray-800); }
+  .t-body-sm  { font-size: 15px; line-height: 1.6; color: var(--gray-800); }
+  .t-caption  { font-size: 13px; line-height: 1.5; opacity: 0.5; }
+  .accent     { color: var(--purple); }
+
+  .mt-4  { margin-top: 4px; }
+  .mt-8  { margin-top: 8px; }
+  .mt-12 { margin-top: 12px; }
+  .mt-16 { margin-top: 16px; }
+  .mt-24 { margin-top: 24px; }
+  .mt-32 { margin-top: 32px; }
+
+  .nav { position: fixed; bottom: 24px; right: 32px; display: flex; align-items: center; gap: 4px; background: rgba(26,8,38,0.82); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid rgba(255,255,255,0.12); border-radius: 100px; padding: 6px 10px; z-index: 200; }
+  .nav-btn { background: none; border: none; color: rgba(255,255,255,0.65); cursor: pointer; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; transition: all 0.15s; }
+  .nav-btn:hover { background: rgba(255,255,255,0.12); color: white; }
+  .nav-btn:disabled { opacity: 0.2; cursor: default; }
+  .nav-btn:disabled:hover { background: none; }
+  .nav-counter { font-size: 12px; color: rgba(255,255,255,0.45); min-width: 40px; text-align: center; font-family: var(--font); font-variant-numeric: tabular-nums; }
+
+  .jump { position: fixed; bottom: 24px; left: 32px; display: flex; align-items: center; gap: 6px; background: rgba(26,8,38,0.82); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid rgba(255,255,255,0.12); border-radius: 100px; padding: 8px 14px; z-index: 200; color: rgba(255,255,255,0.65); font-size: 12px; }
+  .jump select { background: none; border: none; color: white; font-family: var(--font); font-size: 12px; cursor: pointer; }
+  .jump select option { color: #1a0826; }
+
+  .badge { display: inline-flex; align-items: center; gap: 5px; padding: 5px 12px; border-radius: 100px; font-size: 12px; font-weight: 500; letter-spacing: 0.04em; white-space: nowrap; }
+  .badge--ghost  { border: 1px solid rgba(26,8,38,0.2); color: rgba(26,8,38,0.55); }
+  .badge--green  { background: rgba(50,180,100,0.12); color: #1f7a39; }
+  .badge--amber  { background: rgba(212,132,10,0.1); color: #a05c00; }
+  .badge--red    { background: rgba(201,64,64,0.1); color: #a03030; }
+  .badge--purple { background: rgba(101,66,190,0.1); color: var(--purple); }
+
+  .callout { display: flex; gap: 16px; align-items: flex-start; padding: 20px 24px; border-radius: 14px; background: var(--white); border: 1px solid var(--gray-400); }
+  .callout--amber { background: rgba(212,132,10,0.07); border: 1px solid rgba(212,132,10,0.22); }
+  .callout--red   { background: rgba(201,64,64,0.07); border: 1px solid rgba(201,64,64,0.2); }
+  .callout--green { background: rgba(50,180,100,0.07); border: 1px solid rgba(50,180,100,0.2); }
+  .callout-icon  { font-size: 20px; flex: 0 0 auto; margin-top: 1px; line-height: 1; }
+  .callout-title { font-size: 16px; font-weight: 500; margin-bottom: 5px; color: var(--confidence); }
+  .callout-body  { font-size: 14px; line-height: 1.55; color: var(--gray-800); }
+
+  .q-list { display: flex; flex-direction: column; }
+  .q-item { display: grid; grid-template-columns: 40px 1fr auto; gap: 20px; align-items: center; padding: 16px 0; border-bottom: 1px solid var(--gray-400); }
+  .q-item:last-child { border-bottom: none; }
+  .q-num  { width: 40px; height: 40px; border-radius: 50%; background: var(--purple); color: white; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 500; flex: 0 0 auto; }
+  .q-text { font-size: 18px; font-weight: 500; letter-spacing: -0.01em; color: var(--confidence); }
+  .q-sub  { font-size: 13px; color: var(--gray-800); margin-top: 4px; opacity: 0.75; line-height: 1.45; }
+  .q-badges { display: flex; flex-direction: column; gap: 6px; align-items: flex-end; }
+
+  .scr-frame { border-radius: 20px; overflow: hidden; box-shadow: 0 20px 60px rgba(26,8,38,0.18); position: relative; flex: 0 0 auto; background: var(--white); }
+  .scr-frame img { display: block; width: 100%; height: auto; }
+  .frame-grid { display: flex; gap: 20px; align-items: center; justify-content: center; flex-wrap: wrap; }
+
+  .ctx-box { background: var(--white); border-radius: 14px; padding: 18px 22px; border: 1px solid var(--gray-400); margin-top: 20px; }
+  .ctx-box .t-eyebrow { margin-bottom: 8px; }
+</style>
+</head>
+<body>
+
+<!-- ── PASSWORD GATE ── -->
+<div id="pw-gate" style="
+  position:fixed;inset:0;z-index:9999;
+  background:radial-gradient(ellipse at 60% 40%, #2e1660 0%, #180d35 55%, #0d0820 100%);
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--font);
+  transition:opacity 0.6s ease;
+">
+  <!-- Decorative rings -->
+  <div style="position:absolute;inset:0;overflow:hidden;pointer-events:none;">
+    <div style="position:absolute;width:700px;height:700px;border-radius:50%;border:1px solid rgba(170,143,255,0.1);top:-200px;right:-200px;"></div>
+    <div style="position:absolute;width:1100px;height:1100px;border-radius:50%;border:1px solid rgba(170,143,255,0.06);top:-400px;right:-400px;"></div>
+    <div style="position:absolute;width:420px;height:420px;border-radius:50%;border:1px solid rgba(170,143,255,0.08);bottom:-120px;left:-120px;"></div>
+    <div style="position:absolute;width:180px;height:180px;border-radius:50%;border:1px solid rgba(170,143,255,0.12);bottom:80px;right:120px;"></div>
+  </div>
+
+  <!-- Gate card -->
+  <div style="position:relative;text-align:center;max-width:400px;width:90%;padding:0 20px;">
+
+    <!-- Icon -->
+    <div style="margin:0 auto 28px;width:56px;height:56px;display:flex;align-items:center;justify-content:center;">
+      <svg width="56" height="56" viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="28" cy="28" r="27" stroke="rgba(170,143,255,0.3)" stroke-width="1.5"/>
+        <circle cx="28" cy="28" r="18" fill="none" stroke="rgba(170,143,255,0.15)" stroke-width="7"/>
+        <circle cx="28" cy="28" r="18" fill="none" stroke="#aa8fff" stroke-width="7"
+          stroke-dasharray="56.5 113" stroke-dashoffset="28.3" stroke-linecap="round"
+          transform="rotate(-90 28 28)"/>
+      </svg>
+    </div>
+
+    <!-- Title -->
+    <div style="font-size:11px;font-weight:600;letter-spacing:0.16em;text-transform:uppercase;color:rgba(170,143,255,0.6);margin-bottom:10px;">Zip · Internal</div>
+    <h1 style="font-size:44px;font-weight:600;color:#ffffff;margin:0 0 8px;line-height:1.2;">CBT Purchase Funnel<br>Experience Audit</h1>
+    <p style="font-size:14px;color:rgba(255,255,255,0.35);margin:0 0 40px;line-height:1.5;">Enter the access code to continue.</p>
+
+    <!-- Input row -->
+    <div style="position:relative;margin-bottom:14px;">
+      <input
+        id="pw-input"
+        type="password"
+        placeholder="Access code"
+        maxlength="16"
+        autocomplete="off"
+        onkeydown="if(event.key==='Enter')checkPW()"
+        style="
+          width:100%;box-sizing:border-box;
+          background:rgba(255,255,255,0.07);
+          border:1.5px solid rgba(170,143,255,0.25);
+          border-radius:12px;
+          padding:16px 52px 16px 20px;
+          font-size:16px;font-family:var(--font);
+          color:#ffffff;
+          letter-spacing:0.12em;
+          outline:none;
+          transition:border-color 0.2s;
+          -webkit-text-security: disc;
+        "
+        onfocus="this.style.borderColor='rgba(170,143,255,0.7)'"
+        onblur="this.style.borderColor='rgba(170,143,255,0.25)'"
+      />
+      <!-- Eye toggle -->
+      <button onclick="togglePWVisibility()" style="position:absolute;right:14px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:rgba(255,255,255,0.3);padding:4px;" title="Show/hide">
+        <svg id="pw-eye" width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M1 12C1 12 5 4 12 4s11 8 11 8-4 8-11 8S1 12 1 12z" stroke="currentColor" stroke-width="1.5"/><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.5"/></svg>
+      </button>
+    </div>
+
+    <!-- Error msg -->
+    <div id="pw-error" style="font-size:13px;color:#ff7eb3;min-height:18px;margin-bottom:16px;opacity:0;transition:opacity 0.2s;"></div>
+
+    <!-- Submit -->
+    <button onclick="checkPW()" style="
+      width:100%;padding:16px;
+      background:#6542be;
+      border:none;border-radius:12px;
+      color:white;font-size:15px;font-weight:600;
+      font-family:var(--font);
+      cursor:pointer;
+      letter-spacing:0.04em;
+      transition:background 0.15s, transform 0.1s;
+    "
+    onmouseover="this.style.background='#7a55d4'"
+    onmouseout="this.style.background='#6542be'"
+    onmousedown="this.style.transform='scale(0.98)'"
+    onmouseup="this.style.transform='scale(1)'"
+    >Unlock →</button>
+
+  </div>
+</div>
+
+<script>
+  (function() {
+    if (sessionStorage.getItem('cbtpf_auth') === '1') {
+      document.getElementById('pw-gate').style.display = 'none';
+    }
+  })();
+
+  function checkPW() {
+    var val = document.getElementById('pw-input').value.trim().toUpperCase();
+    var err = document.getElementById('pw-error');
+    if (val === 'CBTPF') {
+      sessionStorage.setItem('cbtpf_auth', '1');
+      var gate = document.getElementById('pw-gate');
+      gate.style.opacity = '0';
+      gate.style.pointerEvents = 'none';
+      setTimeout(function(){ gate.style.display = 'none'; }, 650);
+    } else {
+      err.textContent = 'Incorrect code. Try again.';
+      err.style.opacity = '1';
+      var input = document.getElementById('pw-input');
+      input.style.borderColor = 'rgba(255,126,179,0.7)';
+      input.style.animation = 'shake 0.35s ease';
+      setTimeout(function(){
+        err.style.opacity = '0';
+        input.style.borderColor = 'rgba(170,143,255,0.25)';
+        input.style.animation = '';
+      }, 2200);
+    }
+  }
+
+  function togglePWVisibility() {
+    var inp = document.getElementById('pw-input');
+    var isHidden = inp.style.webkitTextSecurity !== 'none';
+    inp.style.webkitTextSecurity = isHidden ? 'none' : 'disc';
+    inp.type = isHidden ? 'text' : 'password';
+  }
+</script>
+<style>
+  @keyframes shake {
+    0%,100%{transform:translateX(0)}
+    20%{transform:translateX(-8px)}
+    40%{transform:translateX(8px)}
+    60%{transform:translateX(-6px)}
+    80%{transform:translateX(6px)}
+  }
+</style>
+
+<div class="deck" id="deck">
+
+  <section class="slide active" id="s-cover" data-title="Cover">
+    <div class="slide-num">Running audit log</div>
+    <div class="body body--center">
+      <div class="t-eyebrow">Zip · Figma Conversion Review</div>
+      <h1 class="t-display">CBT Purchase Funnel<br><span class="accent">Experience Audit.</span></h1>
+      <p class="t-body mt-16" style="max-width:560px;">A running log of pitfalls and conversion opportunities across purchase funnel experiences. Each frame (or set of frames) reviewed adds 3 slides: Screen, Pitfalls, Opportunities.</p>
+    </div>
+  </section>
+
+  <section class="slide" data-kind="overview" data-title="Payment Plan Modal" id="s1-overview">
+    <div class="slide-tag">Screen 1 · Overview</div>
+    <div class="slide-num">Payment Plan Modal</div>
+    <div class="body body--two" style="grid-template-columns:1fr 380px;">
+      <div>
+        <div class="t-eyebrow">Merchant checkout → "Pay with Zip" modal</div>
+        <h2 class="t-headline">Payment Plan Selector</h2>
+        <div class="ctx-box">
+          <div class="t-eyebrow">Context</div>
+          <p class="t-body-sm">Customer is at a merchant's checkout (e.g. Best Buy) and taps "Pay with Zip." This modal opens showing the available payment plans before they commit to a plan and continue checkout.</p>
+        </div>
+      </div>
+      <div class="frame-grid">
+        <div class="scr-frame" style="width:100%;max-width:340px;">
+          <img src="./assets/payment-plan-modal.jpg" alt="Zip payment plan selector modal showing 4-payment and 8-payment options">
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="slide" id="s1-pitfalls">
+    <div class="slide-tag">Screen 1 · Pitfalls</div>
+    <div class="slide-num">Top 5</div>
+    <div class="body body--wide">
+      <div class="t-eyebrow">What's working against conversion</div>
+      <h2 class="t-headline">Pitfalls.</h2>
+      <div class="q-list mt-24">
+        <div class="q-item">
+          <div class="q-num">1</div>
+          <div><div class="q-text">No visible primary CTA</div><div class="q-sub">Each plan row is the entire tap target — there's no "Select" button, so first-time users may not realize tapping the row commits them.</div></div>
+          <div class="q-badges"><span class="badge badge--red">High severity</span></div>
+        </div>
+        <div class="q-item">
+          <div class="q-num">2</div>
+          <div><div class="q-text">Both plans expanded by default</div><div class="q-sub">Full amortization schedules for both options show at once, pushing trust badges and terms far down before any reassurance content appears.</div></div>
+          <div class="q-badges"><span class="badge badge--red">High severity</span></div>
+        </div>
+        <div class="q-item">
+          <div class="q-num">3</div>
+          <div><div class="q-text">No order context</div><div class="q-sub">Merchant name, item, and purchase total never appear in the modal — only payment breakdowns, leaving no reassurance the amount is correct.</div></div>
+          <div class="q-badges"><span class="badge badge--amber">Medium severity</span></div>
+        </div>
+        <div class="q-item">
+          <div class="q-num">4</div>
+          <div><div class="q-text">35% APR sits in 10px type next to a 0-APR-looking option</div><div class="q-sub">Once noticed, this can trigger a trust/skepticism spike on the 8-pay plan relative to the 4-pay plan.</div></div>
+          <div class="q-badges"><span class="badge badge--amber">Medium severity</span></div>
+        </div>
+        <div class="q-item">
+          <div class="q-num">5</div>
+          <div><div class="q-text">Binary exit only</div><div class="q-sub">The only way out is the full-close "X" — no lower-friction "back to checkout," so hesitation likely shows up as full abandonment.</div></div>
+          <div class="q-badges"><span class="badge badge--ghost">Low severity</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="slide" id="s1-opportunities">
+    <div class="slide-tag">Screen 1 · Opportunities</div>
+    <div class="slide-num">Impact vs. effort</div>
+    <div class="body body--wide">
+      <div class="t-eyebrow">Where to focus next</div>
+      <h2 class="t-headline">Opportunities.</h2>
+      <div class="q-list mt-24">
+        <div class="q-item">
+          <div class="q-num">1</div>
+          <div><div class="q-text">Add a visible "Select" affordance on each plan row</div><div class="q-sub">Pure discoverability fix — doesn't change layout structure.</div></div>
+          <div class="q-badges"><span class="badge badge--purple">Impact: High</span><span class="badge badge--ghost">Effort: Low</span></div>
+        </div>
+        <div class="q-item">
+          <div class="q-num">2</div>
+          <div><div class="q-text">Default to a single expanded plan, collapse the other</div><div class="q-sub">Surfaces trust badges sooner and reduces initial scroll depth.</div></div>
+          <div class="q-badges"><span class="badge badge--purple">Impact: High</span><span class="badge badge--ghost">Effort: Medium</span></div>
+        </div>
+        <div class="q-item">
+          <div class="q-num">3</div>
+          <div><div class="q-text">Add a "recommended" / "lowest cost" badge on one plan</div><div class="q-sub">Classic anchor to cut comparison paralysis between the two plans.</div></div>
+          <div class="q-badges"><span class="badge badge--purple">Impact: Medium</span><span class="badge badge--ghost">Effort: Low</span></div>
+        </div>
+        <div class="q-item">
+          <div class="q-num">4</div>
+          <div><div class="q-text">Show merchant name + order total inside the modal header</div><div class="q-sub">Closes the trust gap — needs order data passed through from checkout context.</div></div>
+          <div class="q-badges"><span class="badge badge--purple">Impact: Medium</span><span class="badge badge--ghost">Effort: Medium</span></div>
+        </div>
+        <div class="q-item">
+          <div class="q-num">5</div>
+          <div><div class="q-text">Add a soft secondary exit ("Back to checkout")</div><div class="q-sub">Distinct from the hard close — likely cheap to test, could reduce abandonment at the "X."</div></div>
+          <div class="q-badges"><span class="badge badge--purple">Impact: Medium</span><span class="badge badge--ghost">Effort: Low</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="slide" data-kind="overview" data-title="Spending Power Cards" id="s2-overview">
+    <div class="slide-tag">Screen 2 · Overview</div>
+    <div class="slide-num">Spending Power Cards</div>
+    <div class="body body--two" style="grid-template-columns:1fr 340px;">
+      <div>
+        <div class="t-eyebrow">Spending Power screen → Card options</div>
+        <h2 class="t-headline">Online Virtual Card &amp; In-Store Card</h2>
+        <div class="ctx-box">
+          <div class="t-eyebrow">Context</div>
+          <p class="t-body-sm">Full "Spending Power" screen has many components (balance, CLI tracker, banner, info links), but the audit focus is the 2 card rows up top — Online virtual card and In-store card — since those are the key items in the purchase funnel.</p>
+        </div>
+      </div>
+      <div class="frame-grid">
+        <div class="scr-frame" style="width:100%;max-width:300px;">
+          <img src="./assets/spending-power-cards.jpg" alt="Spending power screen showing online virtual card and in-store card rows">
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="slide" id="s2-pitfalls">
+    <div class="slide-tag">Screen 2 · Pitfalls</div>
+    <div class="slide-num">Top 5</div>
+    <div class="body body--wide">
+      <div class="t-eyebrow">What's working against conversion</div>
+      <h2 class="t-headline">Pitfalls.</h2>
+      <div class="q-list mt-24">
+        <div class="q-item">
+          <div class="q-num">1</div>
+          <div><div class="q-text">Same icon for both card types</div><div class="q-sub">"Online virtual card" and "In-store card" use the identical card glyph — nothing visually distinguishes a virtual card from a physical one at a glance.</div></div>
+          <div class="q-badges"><span class="badge badge--amber">Medium severity</span></div>
+        </div>
+        <div class="q-item">
+          <div class="q-num">2</div>
+          <div><div class="q-text">Inconsistent color treatment between rows</div><div class="q-sub">"Card amount: $40.07" renders in purple/accent while "Card amount: $0" renders in plain gray — unclear if that color difference is meaningful or just inconsistent styling.</div></div>
+          <div class="q-badges"><span class="badge badge--amber">Medium severity</span></div>
+        </div>
+        <div class="q-item">
+          <div class="q-num">3</div>
+          <div><div class="q-text">$0 in-store balance has no explanation or next step</div><div class="q-sub">A zero balance with a bare chevron reads as a dead end — no copy tells the user why it's $0 or what to do about it.</div></div>
+          <div class="q-badges"><span class="badge badge--amber">Medium severity</span></div>
+        </div>
+        <div class="q-item">
+          <div class="q-num">4</div>
+          <div><div class="q-text">Icon-only chevron affordance</div><div class="q-sub">Both rows end in an arrow with no label — the user has to tap blind to learn whether it opens details, activation, or something else.</div></div>
+          <div class="q-badges"><span class="badge badge--ghost">Low severity</span></div>
+        </div>
+        <div class="q-item">
+          <div class="q-num">5</div>
+          <div><div class="q-text">Cards read as settings rows, not a purchase-time choice</div><div class="q-sub">Styled like a generic menu list rather than an actionable selection surface, even though they sit inside a spending/purchase-power context.</div></div>
+          <div class="q-badges"><span class="badge badge--amber">Medium severity</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="slide" id="s2-opportunities">
+    <div class="slide-tag">Screen 2 · Opportunities</div>
+    <div class="slide-num">Impact vs. effort</div>
+    <div class="body body--wide">
+      <div class="t-eyebrow">Where to focus next</div>
+      <h2 class="t-headline">Opportunities.</h2>
+      <div class="q-list mt-24">
+        <div class="q-item">
+          <div class="q-num">1</div>
+          <div><div class="q-text">Give each card type a distinct icon/color</div><div class="q-sub">Lets users tell virtual vs. in-store apart at a glance — asset swap only, no layout change.</div></div>
+          <div class="q-badges"><span class="badge badge--purple">Impact: High</span><span class="badge badge--ghost">Effort: Low</span></div>
+        </div>
+        <div class="q-item">
+          <div class="q-num">2</div>
+          <div><div class="q-text">Make the amount styling consistent (or add a legend)</div><div class="q-sub">Either apply the same color rule to both rows, or clarify what purple vs. gray signals.</div></div>
+          <div class="q-badges"><span class="badge badge--purple">Impact: Medium</span><span class="badge badge--ghost">Effort: Low</span></div>
+        </div>
+        <div class="q-item">
+          <div class="q-num">3</div>
+          <div><div class="q-text">Add contextual copy/CTA on the $0 in-store balance</div><div class="q-sub">e.g. "Activate to use in-store" — turns a dead end into a next step.</div></div>
+          <div class="q-badges"><span class="badge badge--purple">Impact: High</span><span class="badge badge--ghost">Effort: Medium</span></div>
+        </div>
+        <div class="q-item">
+          <div class="q-num">4</div>
+          <div><div class="q-text">Label the chevron affordance</div><div class="q-sub">A short trailing label ("View details") removes the guesswork before tapping.</div></div>
+          <div class="q-badges"><span class="badge badge--purple">Impact: Low</span><span class="badge badge--ghost">Effort: Low</span></div>
+        </div>
+        <div class="q-item">
+          <div class="q-num">5</div>
+          <div><div class="q-text">Turn cards into an actionable selection surface</div><div class="q-sub">If this feeds a purchase decision, add a direct "Use this card" action instead of settings-style navigation.</div></div>
+          <div class="q-badges"><span class="badge badge--purple">Impact: High</span><span class="badge badge--ghost">Effort: High</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="slide" id="s2-page-thoughts">
+    <div class="slide-tag">Screen 2 · Bigger Picture</div>
+    <div class="slide-num">Beyond the 2 cards</div>
+    <div class="body body--wide">
+      <div class="t-eyebrow">Entry point: tapping "Spending Power" from home</div>
+      <h2 class="t-headline">It answers "how much."<br>It doesn't answer <span class="accent">"for what."</span></h2>
+      <p class="t-body mt-16" style="max-width:680px;">A customer taps into Spending Power because they want to know what they can actually do right now — afford a specific item, decide whether to check out, or just see what's possible. Today the screen mostly hands back an abstract number, two card balances, and a future-oriented growth mechanic (CLI tracker). None of it closes the loop back to "so what can I buy."</p>
+      <div class="q-list mt-24">
+        <div class="q-item">
+          <div class="q-num">1</div>
+          <div><div class="q-text">No "where can I use this" path</div><div class="q-sub">The power number never links out to eligible merchants, categories, or a "start shopping" action — it's informational, not a jumping-off point.</div></div>
+          <div class="q-badges"><span class="badge badge--purple">Impact: High</span><span class="badge badge--ghost">Effort: High</span></div>
+        </div>
+        <div class="q-item">
+          <div class="q-num">2</div>
+          <div><div class="q-text">No entry-context awareness</div><div class="q-sub">If a customer arrived mid-purchase to check affordability, the screen should say "yes, you can afford this" and route back — instead everyone sees the same static dashboard.</div></div>
+          <div class="q-badges"><span class="badge badge--purple">Impact: High</span><span class="badge badge--ghost">Effort: Medium</span></div>
+        </div>
+        <div class="q-item">
+          <div class="q-num">3</div>
+          <div><div class="q-text">The one concrete offer is buried</div><div class="q-sub">"You may be approved to Pay in 4 up to $640..." is the only moment that turns the number into something specific — but it's sandwiched between the cards and the CLI tracker, easy to skip past.</div></div>
+          <div class="q-badges"><span class="badge badge--purple">Impact: Medium</span><span class="badge badge--ghost">Effort: Low</span></div>
+        </div>
+        <div class="q-item">
+          <div class="q-num">4</div>
+          <div><div class="q-text">No scaled suggestions</div><div class="q-sub">Nothing shows what's actually purchasable at ~$567 (merchants, categories, price ranges) — the number stays abstract instead of becoming a shopping starting point.</div></div>
+          <div class="q-badges"><span class="badge badge--purple">Impact: Medium</span><span class="badge badge--ghost">Effort: High</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="slide" data-kind="overview" data-title="Online Virtual Card Detail" id="s3-overview">
+    <div class="slide-tag">Screen 3 · Overview</div>
+    <div class="slide-num">Online Virtual Card Detail</div>
+    <div class="body body--two" style="grid-template-columns:1fr 300px;">
+      <div>
+        <div class="t-eyebrow">Spending Power → tap "Online virtual card"</div>
+        <h2 class="t-headline">Online Virtual Card Detail</h2>
+        <div class="ctx-box">
+          <div class="t-eyebrow">Context</div>
+          <p class="t-body-sm">Sequence to the previous screen — this is where users land after tapping the Online Virtual Card row. Meant to be the card they use "as their payment method when shopping online," but it visually feels like a dead end with no clear path to actually go spend it.</p>
+        </div>
+      </div>
+      <div class="frame-grid">
+        <div class="scr-frame" style="width:100%;max-width:260px;">
+          <img src="./assets/online-virtual-card-detail.jpg" alt="Online virtual card detail screen with card visual, transaction row, and Copy/Shop online actions">
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="slide" id="s3-pitfalls">
+    <div class="slide-tag">Screen 3 · Pitfalls</div>
+    <div class="slide-num">Top 5</div>
+    <div class="body body--wide">
+      <div class="t-eyebrow">What's working against conversion</div>
+      <h2 class="t-headline">Pitfalls.</h2>
+      <div class="q-list mt-24">
+        <div class="q-item">
+          <div class="q-num">1</div>
+          <div><div class="q-text">"Shop online" is the only forward action, and it's a black box</div><div class="q-sub">One unlabeled external-link row is the entire path to actually spending the $40.07 — no indication of where it leads (a merchant list? search? a specific store?).</div></div>
+          <div class="q-badges"><span class="badge badge--red">High severity</span></div>
+        </div>
+        <div class="q-item">
+          <div class="q-num">2</div>
+          <div><div class="q-text">Unlabeled trash icon next to a dollar amount</div><div class="q-sub">The trash icon on the "June 9, 2023 / $40.07" row has no label or confirmation — a risky, ambiguous action sitting right next to money.</div></div>
+          <div class="q-badges"><span class="badge badge--red">High severity</span></div>
+        </div>
+        <div class="q-item">
+          <div class="q-num">3</div>
+          <div><div class="q-text">No merchant or marketplace suggestions</div><div class="q-sub">This card exists specifically for online shopping, yet nothing on the page points to where that $40.07 could actually be spent.</div></div>
+          <div class="q-badges"><span class="badge badge--red">High severity</span></div>
+        </div>
+        <div class="q-item">
+          <div class="q-num">4</div>
+          <div><div class="q-text">Unexplained date/amount pairing</div><div class="q-sub">"June 9, 2023" next to "$40.07" has no label — issued date? Expiration? Available-until? The user has to guess.</div></div>
+          <div class="q-badges"><span class="badge badge--amber">Medium severity</span></div>
+        </div>
+        <div class="q-item">
+          <div class="q-num">5</div>
+          <div><div class="q-text">Single blunt exit, no path back into the funnel</div><div class="q-sub">"Close" is the only nav option — no link back to Spending Power or forward into browsing, isolating this screen from the rest of the journey.</div></div>
+          <div class="q-badges"><span class="badge badge--amber">Medium severity</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="slide" id="s3-opportunities">
+    <div class="slide-tag">Screen 3 · Opportunities</div>
+    <div class="slide-num">Impact vs. effort</div>
+    <div class="body body--wide">
+      <div class="t-eyebrow">Where to focus next</div>
+      <h2 class="t-headline">Opportunities.</h2>
+      <div class="q-list mt-24">
+        <div class="q-item">
+          <div class="q-num">1</div>
+          <div><div class="q-text">Turn "Shop online" into a real browsing entry point</div><div class="q-sub">Link to a curated merchant directory scaled to $40.07 instead of an unlabeled external link — directly resolves the dead-end feeling.</div></div>
+          <div class="q-badges"><span class="badge badge--purple">Impact: High</span><span class="badge badge--ghost">Effort: High</span></div>
+        </div>
+        <div class="q-item">
+          <div class="q-num">2</div>
+          <div><div class="q-text">Label and confirm the trash action</div><div class="q-sub">e.g. "Remove card" with a confirmation step — removes ambiguity and prevents risky misclicks near a dollar amount.</div></div>
+          <div class="q-badges"><span class="badge badge--purple">Impact: Medium</span><span class="badge badge--ghost">Effort: Low</span></div>
+        </div>
+        <div class="q-item">
+          <div class="q-num">3</div>
+          <div><div class="q-text">Label the transaction row</div><div class="q-sub">e.g. "Available until June 9, 2023" so the date/amount pairing has clear meaning at a glance.</div></div>
+          <div class="q-badges"><span class="badge badge--purple">Impact: Medium</span><span class="badge badge--ghost">Effort: Low</span></div>
+        </div>
+        <div class="q-item">
+          <div class="q-num">4</div>
+          <div><div class="q-text">Add a link back into the funnel</div><div class="q-sub">e.g. "Back to Spending Power" or "Increase your card amount" — ties this screen back into the journey instead of dead-ending.</div></div>
+          <div class="q-badges"><span class="badge badge--purple">Impact: Medium</span><span class="badge badge--ghost">Effort: Low</span></div>
+        </div>
+        <div class="q-item">
+          <div class="q-num">5</div>
+          <div><div class="q-text">Rebalance visual hierarchy toward the actions</div><div class="q-sub">The card art dominates the screen while "Copy card number" / "Shop online" are small list rows — elevate the actions since they're the actual next step.</div></div>
+          <div class="q-badges"><span class="badge badge--purple">Impact: Medium</span><span class="badge badge--ghost">Effort: Medium</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="slide" data-kind="overview" data-title="Merchant Shopping" id="s4-overview">
+    <div class="slide-tag">Screen 4 · Overview</div>
+    <div class="slide-num">Merchant Shopping</div>
+    <div class="body body--two" style="grid-template-columns:1fr 460px;">
+      <div>
+        <div class="t-eyebrow">Search → Amazon autofill → in-app merchant site</div>
+        <h2 class="t-headline">Shop Amazon → Spend Amount</h2>
+        <div class="ctx-box">
+          <div class="t-eyebrow">Context</div>
+          <p class="t-body-sm">User searches "Amazon," taps the autofill result, and lands on Amazon's site inside the Zip app. The moment they arrive, Frame 1 ("Shopping at Amazon") appears. Tapping "Shop [Amazon]" leads to Frame 2, asking how much they want to spend. Tapping "Set up your virtual card" in Frame 1 takes them elsewhere.</p>
+        </div>
+        <div class="ctx-box">
+          <div class="t-eyebrow">Flagged up front</div>
+          <p class="t-body-sm">(1) User doesn't know what they'll shop for yet. (2) Feels like the wrong time to ask for a spend amount. (3) Setting up the virtual card right now, at first arrival, may pull users away from their actual goal before they even know what they want.</p>
+        </div>
+      </div>
+      <div class="frame-grid">
+        <div class="scr-frame" style="width:100%;max-width:220px;">
+          <img src="./assets/shop-amazon-modal.jpg" alt="Shopping at Amazon modal with Shop Amazon and Set up virtual card buttons">
+        </div>
+        <div class="scr-frame" style="width:100%;max-width:220px;">
+          <img src="./assets/amazon-spend-amount-input.jpg" alt="How much would you like to spend at Amazon input screen">
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="slide" id="s4-pitfalls">
+    <div class="slide-tag">Screen 4 · Pitfalls</div>
+    <div class="slide-num">Top 5</div>
+    <div class="body body--wide">
+      <div class="t-eyebrow">What's working against conversion</div>
+      <h2 class="t-headline">Pitfalls.</h2>
+      <div class="q-list mt-24">
+        <div class="q-item">
+          <div class="q-num">1</div>
+          <div><div class="q-text">"How much would you like to spend" arrives before intent exists</div><div class="q-sub">The amount input follows immediately after landing on Amazon's homepage — before the user has browsed or picked anything to buy.</div></div>
+          <div class="q-badges"><span class="badge badge--red">High severity</span></div>
+        </div>
+        <div class="q-item">
+          <div class="q-num">2</div>
+          <div><div class="q-text">Hard modal blocks the very first moment on the merchant site</div><div class="q-sub">A 50%-dark overlay + bottom sheet forces a decision before the user has seen anything on Amazon yet.</div></div>
+          <div class="q-badges"><span class="badge badge--red">High severity</span></div>
+        </div>
+        <div class="q-item">
+          <div class="q-num">3</div>
+          <div><div class="q-text">"Set up your virtual card" competes for attention at the worst moment</div><div class="q-sub">Offering card setup right at arrival — before the user knows what they want — adds a detour on top of an already premature ask.</div></div>
+          <div class="q-badges"><span class="badge badge--amber">Medium severity</span></div>
+        </div>
+        <div class="q-item">
+          <div class="q-num">4</div>
+          <div><div class="q-text">No visible "just browse first" path</div><div class="q-sub">Only two labeled options exist (Shop / Set up card) — no explicit way to say "not yet, let me look around" without relying on an unlabeled swipe-down.</div></div>
+          <div class="q-badges"><span class="badge badge--amber">Medium severity</span></div>
+        </div>
+        <div class="q-item">
+          <div class="q-num">5</div>
+          <div><div class="q-text">Order-total input ignores visible spending power</div><div class="q-sub">$647 spending power is visible in the dimmed background, but the input starts blank with no suggested amount — full guesswork lands on the user.</div></div>
+          <div class="q-badges"><span class="badge badge--amber">Medium severity</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="slide" id="s4-opportunities">
+    <div class="slide-tag">Screen 4 · Opportunities</div>
+    <div class="slide-num">Impact vs. effort</div>
+    <div class="body body--wide">
+      <div class="t-eyebrow">Where to focus next</div>
+      <h2 class="t-headline">Opportunities.</h2>
+      <div class="q-list mt-24">
+        <div class="q-item">
+          <div class="q-num">1</div>
+          <div><div class="q-text">Replace the hard modal with a lightweight, dismissible entry point</div><div class="q-sub">e.g. a collapsed banner/pill ("Tap when ready to checkout with Zip") instead of a full dimmed takeover — lets browsing happen uninterrupted.</div></div>
+          <div class="q-badges"><span class="badge badge--purple">Impact: High</span><span class="badge badge--ghost">Effort: Medium</span></div>
+        </div>
+        <div class="q-item">
+          <div class="q-num">2</div>
+          <div><div class="q-text">Move the amount ask to when real intent exists</div><div class="q-sub">Trigger it at cart/checkout on the merchant site rather than on arrival, when there's an actual order total to work from.</div></div>
+          <div class="q-badges"><span class="badge badge--purple">Impact: High</span><span class="badge badge--ghost">Effort: High</span></div>
+        </div>
+        <div class="q-item">
+          <div class="q-num">3</div>
+          <div><div class="q-text">Pre-fill the amount using visible spending power</div><div class="q-sub">Suggest/default toward the $647 already shown instead of a blank input, cutting the guesswork.</div></div>
+          <div class="q-badges"><span class="badge badge--purple">Impact: Medium</span><span class="badge badge--ghost">Effort: Low</span></div>
+        </div>
+        <div class="q-item">
+          <div class="q-num">4</div>
+          <div><div class="q-text">Add an explicit "I'll decide later" dismissal</div><div class="q-sub">A labeled way out, not just an implicit swipe-down, so users aren't forced into a binary choice before they're ready.</div></div>
+          <div class="q-badges"><span class="badge badge--purple">Impact: Medium</span><span class="badge badge--ghost">Effort: Low</span></div>
+        </div>
+        <div class="q-item">
+          <div class="q-num">5</div>
+          <div><div class="q-text">Separate card setup from the first-touch moment</div><div class="q-sub">Push "Set up your virtual card" to a later, checkout-adjacent point instead of competing for attention at arrival.</div></div>
+          <div class="q-badges"><span class="badge badge--purple">Impact: Medium</span><span class="badge badge--ghost">Effort: Medium</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="slide" data-kind="overview" data-title="Fallback Active PR Modal" id="s5-overview">
+    <div class="slide-tag">Screen 5 · Overview</div>
+    <div class="slide-num">Fallback Active PR Modal</div>
+    <div class="body body--two" style="grid-template-columns:1fr 460px;">
+      <div>
+        <div class="t-eyebrow">Proactive reconciliation, not merchant navigation</div>
+        <h2 class="t-headline">Did You Complete This Purchase?</h2>
+        <div class="ctx-box">
+          <div class="t-eyebrow">Context</div>
+          <p class="t-body-sm">Triggered when a customer has an active Purchase Request (PR) but wasn't just navigating a merchant — Zip proactively checks in. "Yes, I completed this purchase" sets the PR to 'pending' and hides it, then returns the user to the merchant webview — now in its "no active VC" state, with a persistent "Pay with Zip" button in the bottom toolbar. "No, I never spent it" triggers the second frame, which resurfaces the virtual card webview.</p>
+        </div>
+      </div>
+      <div class="frame-grid">
+        <div class="scr-frame" style="width:100%;max-width:170px;">
+          <img src="./assets/fallback-active-pr-modal.jpg" alt="Did you end up making this purchase modal with Yes and No options">
+        </div>
+        <div class="scr-frame" style="width:100%;max-width:170px;">
+          <img src="./assets/webview-active-vc-recheck.jpg" alt="Webview showing virtual card details resurfaced after No I never spent it">
+        </div>
+        <div class="scr-frame" style="width:100%;max-width:170px;">
+          <img src="./assets/pay-with-zip-toolbar.jpg" alt="Merchant webview after Yes with persistent Pay with Zip button in bottom toolbar">
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="slide" id="s5-yes-outcome">
+    <div class="slide-tag">Screen 5 · After "Yes"</div>
+    <div class="slide-num">Focus: the "Pay with Zip" button</div>
+    <div class="body body--two" style="grid-template-columns:1fr 320px;">
+      <div>
+        <div class="t-eyebrow">Where "Yes, I completed this purchase" leads</div>
+        <h2 class="t-headline">Pay with Zip — Persistent Toolbar</h2>
+        <div class="ctx-box">
+          <div class="t-eyebrow">Context</div>
+          <p class="t-body-sm">After confirming "Yes," the PR closes and the merchant webview reverts to its no-active-card state — a persistent bottom toolbar with a "Pay with Zip" button, inviting a new purchase during the same browsing session. Analysis focus is this button and what happens after tapping it. The ESP banner above it is out of scope here — already covered in Screen 2.</p>
+        </div>
+      </div>
+      <div class="frame-grid">
+        <div class="scr-frame" style="width:100%;max-width:300px;">
+          <img src="./assets/pay-with-zip-toolbar.jpg" alt="Larger view of merchant webview bottom toolbar with Pay with Zip button">
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="slide" id="s5-pitfalls">
+    <div class="slide-tag">Screen 5 · Pitfalls</div>
+    <div class="slide-num">Top 4</div>
+    <div class="body body--wide">
+      <div class="t-eyebrow">What's working against conversion</div>
+      <h2 class="t-headline">A mostly well-designed check-in.</h2>
+      <div class="q-list mt-24">
+        <div class="q-item">
+          <div class="q-num">1</div>
+          <div><div class="q-text">"Pay with Zip" re-triggers the same premature amount-ask flow flagged in Screen 4</div><div class="q-sub">Tapping it almost certainly opens the Shop → spend-amount flow again — before any new shopping intent exists, same root issue as before, just a second entry point into it.</div></div>
+          <div class="q-badges"><span class="badge badge--red">High severity</span></div>
+        </div>
+        <div class="q-item">
+          <div class="q-num">2</div>
+          <div><div class="q-text">"No, I never spent it" resurfaces the card with no reorientation</div><div class="q-sub">User lands back on a blank webview + card sheet with no copy explaining why they're seeing it again or what to do next (e.g. "head back to Amazon to finish up").</div></div>
+          <div class="q-badges"><span class="badge badge--amber">Medium severity</span></div>
+        </div>
+        <div class="q-item">
+          <div class="q-num">3</div>
+          <div><div class="q-text">"Pay with Zip" label doesn't match what happens next</div><div class="q-sub">Reads like an immediate payment action, but the next step is filling in a budget/amount — not a charge. The label sets the wrong expectation.</div></div>
+          <div class="q-badges"><span class="badge badge--amber">Medium severity</span></div>
+        </div>
+        <div class="q-item">
+          <div class="q-num">4</div>
+          <div><div class="q-text">No closing acknowledgment after "Yes, I completed this purchase"</div><div class="q-sub">The interaction resolves silently — a one-line confirmation would close the loop.</div></div>
+          <div class="q-badges"><span class="badge badge--ghost">Low severity</span></div>
+        </div>
+      </div>
+      <div class="callout callout--green mt-24">
+        <span class="callout-icon">✓</span>
+        <div>
+          <div class="callout-title">The core mechanic itself is a good pattern</div>
+          <div class="callout-body">Recognizing an ambiguous system state (unclear if a PR converted) and proactively resolving it via a direct question — rather than leaving it stuck — is the right move. Showing merchant, date, and amount gives exactly enough to jog memory, and "Some merchants like Amazon can take up to a few days to charge a completed purchase" pre-empts confusion about the delay. Equal visual weight on both buttons is also correct here — it's a neutral factual question, not a decision that should be nudged one way.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="slide" id="s5-opportunities">
+    <div class="slide-tag">Screen 5 · Opportunities</div>
+    <div class="slide-num">Impact vs. effort</div>
+    <div class="body body--wide">
+      <div class="t-eyebrow">Where to focus next</div>
+      <h2 class="t-headline">Opportunities.</h2>
+      <div class="q-list mt-24">
+        <div class="q-item">
+          <div class="q-num">1</div>
+          <div><div class="q-text">Apply Screen 4's proposed fixes to this entry point too</div><div class="q-sub">Since "Pay with Zip" here re-enters the same flow, the lightweight-entry and pre-filled-amount fixes proposed for Screen 4 resolve this pitfall as well — no separate fix needed.</div></div>
+          <div class="q-badges"><span class="badge badge--purple">Impact: High</span><span class="badge badge--ghost">Effort: Low</span></div>
+        </div>
+        <div class="q-item">
+          <div class="q-num">2</div>
+          <div><div class="q-text">Add reorientation copy when the card resurfaces</div><div class="q-sub">e.g. "Ready when you need it — head back to Amazon to complete your purchase" instead of a bare card sheet on a blank page.</div></div>
+          <div class="q-badges"><span class="badge badge--purple">Impact: Medium</span><span class="badge badge--ghost">Effort: Low</span></div>
+        </div>
+        <div class="q-item">
+          <div class="q-num">3</div>
+          <div><div class="q-text">Relabel or add a strapline to "Pay with Zip"</div><div class="q-sub">Clarify the actual next step (setting a budget) so the button doesn't over-promise an immediate payment.</div></div>
+          <div class="q-badges"><span class="badge badge--purple">Impact: Medium</span><span class="badge badge--ghost">Effort: Low</span></div>
+        </div>
+        <div class="q-item">
+          <div class="q-num">4</div>
+          <div><div class="q-text">Add a brief closing acknowledgment after "Yes"</div><div class="q-sub">A short toast/confirmation so the interaction doesn't just vanish with no feedback.</div></div>
+          <div class="q-badges"><span class="badge badge--purple">Impact: Low</span><span class="badge badge--ghost">Effort: Low</span></div>
+        </div>
+        <div class="q-item">
+          <div class="q-num">5</div>
+          <div><div class="q-text">Speculative — consider a "Not sure" path</div><div class="q-sub">Only worth exploring if data shows people mis-answering the binary choice; forcing resolution may well be the intentional and correct design as-is.</div></div>
+          <div class="q-badges"><span class="badge badge--purple">Impact: Low</span><span class="badge badge--ghost">Effort: Medium</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="slide" data-kind="overview" data-title="Online PR Flow" id="s6-overview">
+    <div class="slide-tag">Screen 6 · Overview</div>
+    <div class="slide-num">Online PR Flow</div>
+    <div class="body body--two" style="grid-template-columns:1fr 320px;">
+      <div>
+        <div class="t-eyebrow">After the amount is set on a Purchase Request</div>
+        <h2 class="t-headline">How Would You Like to Pay?</h2>
+        <div class="ctx-box">
+          <div class="t-eyebrow">Context</div>
+          <p class="t-body-sm">After a customer sets the amount on a PR, they choose how to pay it. The question driving this audit isn't just function/interaction — is this the best available approach? What's missing? Should it be more illustrative, more descriptive, reflect the actual purchase, be more brandable? Does it give users a sense of ease and continuity in choosing their plan?</p>
+        </div>
+      </div>
+      <div class="frame-grid">
+        <div class="scr-frame" style="width:100%;max-width:300px;">
+          <img src="./assets/choose-payment-plan.jpg" alt="Choose a payment plan modal with 2, 4, and 8 payment options and a Continue button">
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="slide" id="s6-pitfalls">
+    <div class="slide-tag">Screen 6 · Pitfalls</div>
+    <div class="slide-num">Top 4</div>
+    <div class="body body--wide">
+      <div class="t-eyebrow">What's working against conversion</div>
+      <h2 class="t-headline">Solid bones, thin surface.</h2>
+      <div class="q-list mt-24">
+        <div class="q-item">
+          <div class="q-num">1</div>
+          <div><div class="q-text">Inconsistent fee transparency between options</div><div class="q-sub">The 2-payment row says "Lower fees" outright, but the pre-selected 4-payment default shows no cost info at all — a user could commit to it without ever seeing what it costs, unless they tap "Learn more."</div></div>
+          <div class="q-badges"><span class="badge badge--red">High severity</span></div>
+        </div>
+        <div class="q-item">
+          <div class="q-num">2</div>
+          <div><div class="q-text">No purchase context beyond a dollar figure</div><div class="q-sub">"Order total $40.07" is shown, but nothing reminds the user what they're actually buying or where — the decision feels detached from the purchase itself.</div></div>
+          <div class="q-badges"><span class="badge badge--amber">Medium severity</span></div>
+        </div>
+        <div class="q-item">
+          <div class="q-num">3</div>
+          <div><div class="q-text">Zero illustrative cue for payment cadence</div><div class="q-sub">"Pay biweekly over 6 weeks" is pure text — no lightweight visual (e.g. a small dot-timeline) reinforces how the payments actually land over time.</div></div>
+          <div class="q-badges"><span class="badge badge--amber">Medium severity</span></div>
+        </div>
+        <div class="q-item">
+          <div class="q-num">4</div>
+          <div><div class="q-text">No brand presence at a financial-commitment moment</div><div class="q-sub">Fully utilitarian — no Zip personality or reassurance styling right when the user is making a real money decision. Debatable: minimalism has a case here too, but it's worth a deliberate choice rather than a default.</div></div>
+          <div class="q-badges"><span class="badge badge--ghost">Low severity</span></div>
+        </div>
+      </div>
+      <div class="callout callout--green mt-24">
+        <span class="callout-icon">✓</span>
+        <div>
+          <div class="callout-title">This is a meaningfully better decision pattern than Screen 1</div>
+          <div class="callout-body">One pre-selected default plus a single visible "Continue" fixes Screen 1's two biggest pitfalls (no default, no visible CTA). The order total in the header addresses Screen 1's "no order context" gap. The disabled 8-payment option is shown with a plain-language reason instead of silently hidden — good transparency instinct. "Learn more about your payment options" gives an escape hatch for detail without cluttering the primary decision.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="slide" id="s6-opportunities">
+    <div class="slide-tag">Screen 6 · Opportunities</div>
+    <div class="slide-num">Impact vs. effort</div>
+    <div class="body body--wide">
+      <div class="t-eyebrow">Where to focus next</div>
+      <h2 class="t-headline">Opportunities.</h2>
+      <div class="q-list mt-24">
+        <div class="q-item">
+          <div class="q-num">1</div>
+          <div><div class="q-text">Show fee/cost consistently across every option</div><div class="q-sub">At minimum, disclose it on the pre-selected default — don't make cost info opt-in via a separate link for the option most people will end up choosing.</div></div>
+          <div class="q-badges"><span class="badge badge--purple">Impact: High</span><span class="badge badge--ghost">Effort: Low</span></div>
+        </div>
+        <div class="q-item">
+          <div class="q-num">2</div>
+          <div><div class="q-text">Add a one-line purchase reminder</div><div class="q-sub">Merchant/item name near the order total ties the decision back to what's actually being bought, not just an abstract number.</div></div>
+          <div class="q-badges"><span class="badge badge--purple">Impact: Medium</span><span class="badge badge--ghost">Effort: Low</span></div>
+        </div>
+        <div class="q-item">
+          <div class="q-num">3</div>
+          <div><div class="q-text">Add a lightweight visual cadence cue</div><div class="q-sub">A small dot-timeline per option — short of Screen 1's full expanded schedule — would make "biweekly over 6 weeks" feel concrete without adding bulk.</div></div>
+          <div class="q-badges"><span class="badge badge--purple">Impact: Medium</span><span class="badge badge--ghost">Effort: Medium</span></div>
+        </div>
+        <div class="q-item">
+          <div class="q-num">4</div>
+          <div><div class="q-text">Consider a small branded touch</div><div class="q-sub">A restrained accent or illustration could add warmth at a trust-sensitive moment — worth testing deliberately rather than assuming pure utility is best by default.</div></div>
+          <div class="q-badges"><span class="badge badge--purple">Impact: Low</span><span class="badge badge--ghost">Effort: Medium</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="slide" data-kind="overview" data-title="Pay In-Store Tab" id="s7-overview">
+    <div class="slide-tag">Screen 7 · Overview</div>
+    <div class="slide-num">Pay In-Store Tab</div>
+    <div class="body body--two" style="grid-template-columns:1fr 300px;">
+      <div>
+        <div class="t-eyebrow">Bottom nav → In-Store tab</div>
+        <h2 class="t-headline">Pay In-Store</h2>
+        <div class="ctx-box">
+          <div class="t-eyebrow">Context</div>
+          <p class="t-body-sm">Dedicated bottom-nav tab for in-store payment. Full screen is in scope, but the CBT Purchase Funnel focus is what happens when the user taps "Pay in-store."</p>
+        </div>
+      </div>
+      <div class="frame-grid">
+        <div class="scr-frame" style="width:100%;max-width:280px;">
+          <img src="./assets/pay-in-store-tab.jpg" alt="In-Store tab with card art, approval banner, Pay in-store button, and Need help section">
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="slide" id="s7-pitfalls">
+    <div class="slide-tag">Screen 7 · Pitfalls</div>
+    <div class="slide-num">Top 4</div>
+    <div class="body body--wide">
+      <div class="t-eyebrow">What's working against conversion</div>
+      <h2 class="t-headline">Pitfalls.</h2>
+      <div class="q-list mt-24">
+        <div class="q-item">
+          <div class="q-num">1</div>
+          <div><div class="q-text">"Pay in-store" outcome is unclear</div><div class="q-sub">No visibility into what tapping it actually surfaces — a fuller card view, a QR/barcode, wallet provisioning? — and whether it duplicates the card art already partially shown above.</div></div>
+          <div class="q-badges"><span class="badge badge--red">High severity</span></div>
+        </div>
+        <div class="q-item">
+          <div class="q-num">2</div>
+          <div><div class="q-text">The card — the tab's core functional asset — is mostly obscured</div><div class="q-sub">Only the top sliver peeks above the white sheet, with no visible affordance to reveal or expand it, on the one tab whose whole purpose is using that card.</div></div>
+          <div class="q-badges"><span class="badge badge--amber">Medium severity</span></div>
+        </div>
+        <div class="q-item">
+          <div class="q-num">3</div>
+          <div><div class="q-text">Unexplained single-merchant help row</div><div class="q-sub">"How to pay at Walmart" sits among generic help rows with no context on why Walmart specifically — unclear if it's the only supported in-store partner or just an example.</div></div>
+          <div class="q-badges"><span class="badge badge--amber">Medium severity</span></div>
+        </div>
+        <div class="q-item">
+          <div class="q-num">4</div>
+          <div><div class="q-text">"Larger first installment" upsell still unexplained here too</div><div class="q-sub">Same recurring gap flagged in earlier screens — the banner reappears without in-context explanation of what it means or costs.</div></div>
+          <div class="q-badges"><span class="badge badge--ghost">Low severity</span></div>
+        </div>
+      </div>
+      <div class="callout callout--green mt-24">
+        <span class="callout-icon">✓</span>
+        <div>
+          <div class="callout-title">Giving in-store its own first-class tab is the right call</div>
+          <div class="callout-body">Unlike the Online Virtual Card (buried a few taps deep via Spending Power), in-store payment gets a dedicated home in the main nav. The "Need help?" section also proactively addresses a genuinely confusing real-world task — using a virtual card at a physical register — with direct links instead of leaving users to figure it out.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="slide" id="s7-opportunities">
+    <div class="slide-tag">Screen 7 · Opportunities</div>
+    <div class="slide-num">Impact vs. effort</div>
+    <div class="body body--wide">
+      <div class="t-eyebrow">Where to focus next</div>
+      <h2 class="t-headline">Opportunities.</h2>
+      <div class="q-list mt-24">
+        <div class="q-item">
+          <div class="q-num">1</div>
+          <div><div class="q-text">Make "Pay in-store" outcome unambiguous</div><div class="q-sub">Surface or link directly to the actual card/QR/instructions needed at checkout in the same tap, removing guesswork about what happens next.</div></div>
+          <div class="q-badges"><span class="badge badge--purple">Impact: High</span><span class="badge badge--ghost">Effort: Medium</span></div>
+        </div>
+        <div class="q-item">
+          <div class="q-num">2</div>
+          <div><div class="q-text">Make the card fully viewable on this tab</div><div class="q-sub">Tap-to-reveal or auto-scroll to the full card, since it's the primary functional asset for the tab's whole purpose.</div></div>
+          <div class="q-badges"><span class="badge badge--purple">Impact: Medium</span><span class="badge badge--ghost">Effort: Low</span></div>
+        </div>
+        <div class="q-item">
+          <div class="q-num">3</div>
+          <div><div class="q-text">Clarify the Walmart-specific help row</div><div class="q-sub">Either explain why it's called out ("most popular in-store partner") or generalize it into a merchant picker if more retailers are supported.</div></div>
+          <div class="q-badges"><span class="badge badge--purple">Impact: Medium</span><span class="badge badge--ghost">Effort: Low</span></div>
+        </div>
+        <div class="q-item">
+          <div class="q-num">4</div>
+          <div><div class="q-text">Explain "larger first installment" in-context wherever this banner appears</div><div class="q-sub">A recurring fix that would pay off across every screen it shows up on, not just this one.</div></div>
+          <div class="q-badges"><span class="badge badge--purple">Impact: Medium</span><span class="badge badge--ghost">Effort: Low</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="slide" id="s7-card-jtbd">
+    <div class="slide-tag">Screen 7 · Bonus</div>
+    <div class="slide-num">Zip Card Representation — JTBD</div>
+    <div class="body body--two" style="grid-template-columns:1fr 320px;">
+      <div>
+        <div class="t-eyebrow">Owned by our team — reused across nearly every screen audited</div>
+        <h2 class="t-headline">One card image, several jobs. <span class="accent">Not all equally served.</span></h2>
+        <p class="t-body mt-16">This exact card graphic is the shared asset behind the Online Virtual Card detail, the Fallback modal, and this In-Store tab. Jobs-to-be-done framing: <strong>functional</strong> (give me what I need to actually pay), <strong>identification</strong> (tell me which card/context I'm in), <strong>emotional</strong> (make me confident this is really my Zip card, ready to use).</p>
+        <div class="q-list mt-24">
+          <div class="q-item">
+            <div class="q-num">1</div>
+            <div><div class="q-text">Functional job is questionable for in-store</div><div class="q-sub">The card's entire surface is devoted to raw digits (number, expiry, CVC) — useful for online entry, but unclear that's even the right data for a physical register (tap-to-pay/QR may not need visible digits at all).</div></div>
+            <div class="q-badges"><span class="badge badge--red">Unclear fit</span></div>
+          </div>
+          <div class="q-item">
+            <div class="q-num">2</div>
+            <div><div class="q-text">Identification job is unserved</div><div class="q-sub">Identical art is used for the online card and the in-store card — same root gap flagged back in Screen 2's "same icon for both card types," now traced up to the shared source asset.</div></div>
+            <div class="q-badges"><span class="badge badge--amber">Unserved</span></div>
+          </div>
+        </div>
+        <div class="callout callout--green mt-16">
+          <span class="callout-icon">✓</span>
+          <div>
+            <div class="callout-title">Emotional job is served well</div>
+            <div class="callout-body">Consistent Zip branding (logo, gradient, VISA mark) across every context builds a reliable "this is really connected to my account" signal — that part doesn't need fixing.</div>
+          </div>
+        </div>
+      </div>
+      <div class="frame-grid">
+        <div class="scr-frame" style="width:100%;max-width:300px;">
+          <img src="./assets/zip-card-representation.jpg" alt="Zip Card Representation - the shared virtual card graphic asset">
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="slide" data-kind="overview" data-title="Pre-fill Experiment" id="s8-overview">
+    <div class="slide-tag">Screen 8 · Overview</div>
+    <div class="slide-num">Pre-fill Experiment</div>
+    <div class="body body--two" style="grid-template-columns:1fr 300px;">
+      <div>
+        <div class="t-eyebrow">Experiment — in-store VC before knowing the order total</div>
+        <h2 class="t-headline">You're Good to Go, Even Without a Total</h2>
+        <div class="ctx-box">
+          <div class="t-eyebrow">Context</div>
+          <p class="t-body-sm">Educational modal for an experiment letting users set up an in-store virtual card before they know their order total — choosing "not sure" instead, then reconciling installments to the final amount after purchase.</p>
+        </div>
+      </div>
+      <div class="frame-grid">
+        <div class="scr-frame" style="width:100%;max-width:280px;">
+          <img src="./assets/pre-fill-experiment.jpg" alt="Pre-fill experiment modal explaining setting up an in-store card before knowing the order total">
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="slide" id="s8-pitfalls">
+    <div class="slide-tag">Screen 8 · Pitfalls</div>
+    <div class="slide-num">Top 3 — not padded to 5</div>
+    <div class="body body--wide">
+      <div class="t-eyebrow">What's working against conversion</div>
+      <h2 class="t-headline">A smart fix, thin follow-through.</h2>
+      <div class="q-list mt-24">
+        <div class="q-item">
+          <div class="q-num">1</div>
+          <div><div class="q-text">"Got it" doesn't convert the education into action</div><div class="q-sub">After walking through all 4 steps, the button just dismisses the modal — no direct path into "Pay in-store" (step 1), the exact action it just taught. Momentum is lost right after it's built.</div></div>
+          <div class="q-badges"><span class="badge badge--red">High severity</span></div>
+        </div>
+        <div class="q-item">
+          <div class="q-num">2</div>
+          <div><div class="q-text">Illustration is decorative, not explanatory</div><div class="q-sub">The tap-to-pay scene reinforces something users already know is possible, rather than visualizing the actually-new mechanic: set up now, reconcile to the final total later.</div></div>
+          <div class="q-badges"><span class="badge badge--amber">Medium severity</span></div>
+        </div>
+        <div class="q-item">
+          <div class="q-num">3</div>
+          <div><div class="q-text">"Up to your spending power" stays abstract</div><div class="q-sub">A missed chance to restate the actual number here, consistent with the same gap flagged in earlier screens.</div></div>
+          <div class="q-badges"><span class="badge badge--ghost">Low severity</span></div>
+        </div>
+      </div>
+      <div class="callout callout--green mt-24">
+        <span class="callout-icon">✓</span>
+        <div>
+          <div class="callout-title">This experiment directly answers a gap flagged twice already</div>
+          <div class="callout-body">Screens 2 and 4 both flagged the same root issue: users are asked to commit to an amount before they have the information to answer it. Adding a "not sure" path with final-total reconciliation is exactly the right fix, and the 4-step explanation is clear, concrete, and honest about how installments get calculated — good for trust at a moment that could otherwise feel uncertain.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="slide" id="s8-opportunities">
+    <div class="slide-tag">Screen 8 · Opportunities</div>
+    <div class="slide-num">Impact vs. effort</div>
+    <div class="body body--wide">
+      <div class="t-eyebrow">Where to focus next</div>
+      <h2 class="t-headline">Opportunities.</h2>
+      <div class="q-list mt-24">
+        <div class="q-item">
+          <div class="q-num">1</div>
+          <div><div class="q-text">Turn "Got it" into a direct action CTA</div><div class="q-sub">e.g. "Try Pay in-store now" — route straight into step 1 of the flow just explained, while intent is highest.</div></div>
+          <div class="q-badges"><span class="badge badge--purple">Impact: High</span><span class="badge badge--ghost">Effort: Low</span></div>
+        </div>
+        <div class="q-item">
+          <div class="q-num">2</div>
+          <div><div class="q-text">Make the illustration explanatory</div><div class="q-sub">A simple before/after — "set up now → final total confirmed later" — would visualize the actually-new part instead of a generic tap-to-pay scene.</div></div>
+          <div class="q-badges"><span class="badge badge--purple">Impact: Medium</span><span class="badge badge--ghost">Effort: Medium</span></div>
+        </div>
+        <div class="q-item">
+          <div class="q-num">3</div>
+          <div><div class="q-text">Restate the actual spending power number</div><div class="q-sub">Swap the generic phrase in step 3 for the real figure, making the ceiling concrete rather than abstract.</div></div>
+          <div class="q-badges"><span class="badge badge--purple">Impact: Low</span><span class="badge badge--ghost">Effort: Low</span></div>
+        </div>
+        <div class="q-item">
+          <div class="q-num">4</div>
+          <div><div class="q-text">Verify the "not sure" option actually exists on the order-total screen</div><div class="q-sub">Consistency check against Screen 4's amount input — this experiment only converts if that option is really there when users go looking for it.</div></div>
+          <div class="q-badges"><span class="badge badge--purple">Impact: Medium</span><span class="badge badge--ghost">Effort: Low</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<nav class="jump" id="jump-nav" style="display:none;">
+  <span>Jump to frame:</span>
+  <select id="jump-select" onchange="goTo(parseInt(this.value))"></select>
+</nav>
+
+<nav class="nav" role="navigation" aria-label="Slide navigation">
+  <button class="nav-btn" id="prev-btn" onclick="goSlide(-1)" aria-label="Previous slide" disabled>‹</button>
+  <span class="nav-counter" id="nav-counter">1 / 1</span>
+  <button class="nav-btn" id="next-btn" onclick="goSlide(1)" aria-label="Next slide">›</button>
+</nav>
+
+<script>
+  var slides = Array.from(document.querySelectorAll('.slide'));
+  var current = 0, total = slides.length;
+
+  function refreshJumpNav() {
+    var jumpNav = document.getElementById('jump-nav');
+    var select = document.getElementById('jump-select');
+    var overviewSlides = slides.filter(function(s){ return s.dataset.kind === 'overview'; });
+    if (overviewSlides.length === 0) { jumpNav.style.display = 'none'; return; }
+    jumpNav.style.display = 'flex';
+    select.innerHTML = '';
+    overviewSlides.forEach(function(s) {
+      var opt = document.createElement('option');
+      opt.value = slides.indexOf(s);
+      opt.textContent = s.dataset.title || ('Frame');
+      select.appendChild(opt);
+    });
+  }
+
+  function goTo(index) {
+    slides[current].classList.remove('active');
+    current = Math.max(0, Math.min(index, total-1));
+    slides[current].classList.add('active');
+    document.getElementById('nav-counter').textContent = (current+1)+' / '+total;
+    document.getElementById('prev-btn').disabled = (current===0);
+    document.getElementById('next-btn').disabled = (current===total-1);
+  }
+  function goSlide(dir) { goTo(current+dir); }
+  document.addEventListener('keydown', function(e) {
+    if (e.key==='ArrowRight'||e.key==='ArrowDown') goSlide(1);
+    if (e.key==='ArrowLeft' ||e.key==='ArrowUp')   goSlide(-1);
+  });
+  document.getElementById('nav-counter').textContent = '1 / '+total;
+  document.getElementById('next-btn').disabled = (total<=1);
+  refreshJumpNav();
+</script>
+</body>
+</html>
