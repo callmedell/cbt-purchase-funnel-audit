@@ -87,6 +87,14 @@
 
   .ctx-box { background: var(--white); border-radius: 14px; padding: 18px 22px; border: 1px solid var(--gray-400); margin-top: 20px; }
   .ctx-box .t-eyebrow { margin-bottom: 8px; }
+
+  .copy-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+  .copy-table th { text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--gray-800); opacity: 0.55; padding: 8px 14px; border-bottom: 1px solid var(--gray-400); }
+  .copy-table td { padding: 16px 14px; border-bottom: 1px solid var(--gray-400); font-size: 14px; color: var(--confidence); vertical-align: top; line-height: 1.5; }
+  .copy-table td.orig { color: var(--gray-800); font-style: italic; }
+  .copy-table td.improved { color: var(--purple); font-weight: 500; }
+  .copy-table td.why { color: var(--gray-800); font-size: 13px; }
+  .state-badges { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
 </style>
 </head>
 <body>
@@ -330,6 +338,28 @@
     </div>
   </section>
 
+  <section class="slide" id="s1-copy">
+    <div class="slide-tag">Screen 1 · Copy &amp; Tone</div>
+    <div class="slide-num">CopyLab lens</div>
+    <div class="body body--wide">
+      <div class="t-eyebrow">Emotional states in play</div>
+      <h2 class="t-headline">Copy &amp; tone.</h2>
+      <div class="state-badges">
+        <span class="badge badge--ghost">Trust / Skepticism</span>
+        <span class="badge badge--ghost">Confusion</span>
+      </div>
+      <table class="copy-table">
+        <tr><th>Element</th><th>Original</th><th>Improved</th><th>Why</th></tr>
+        <tr>
+          <td>8-pay fee disclosure line</td>
+          <td class="orig">"Includes fee: $2.25 per installment ($18 per order (35% APR))"</td>
+          <td class="improved">"Includes fee: $2.25 per installment — $18 total, 35% APR"</td>
+          <td class="why">Double-nested parentheses are hard to parse at a glance. The 4-pay line right above it uses a single, clean parenthetical — this fix also makes the two options' fee copy consistent with each other.</td>
+        </tr>
+      </table>
+    </div>
+  </section>
+
   <section class="slide" id="s1-questions">
     <div class="slide-tag">Screen 1 · Questions to Ask</div>
     <div class="slide-num">JTBD lens</div>
@@ -457,6 +487,28 @@
           <div class="q-badges"><span class="badge badge--purple">Impact: High</span><span class="badge badge--ghost">Effort: High</span></div>
         </div>
       </div>
+    </div>
+  </section>
+
+  <section class="slide" id="s2-copy">
+    <div class="slide-tag">Screen 2 · Copy &amp; Tone</div>
+    <div class="slide-num">CopyLab lens</div>
+    <div class="body body--wide">
+      <div class="t-eyebrow">Emotional states in play</div>
+      <h2 class="t-headline">Copy &amp; tone.</h2>
+      <div class="state-badges">
+        <span class="badge badge--ghost">Motivation / Value Perception</span>
+        <span class="badge badge--ghost">Trust / Skepticism</span>
+      </div>
+      <table class="copy-table">
+        <tr><th>Element</th><th>Original</th><th>Improved</th><th>Why</th></tr>
+        <tr>
+          <td>"Larger first installment" link</td>
+          <td class="orig">"...up to $640 with a larger first installment."</td>
+          <td class="improved">"...up to $640 by paying more upfront on your first installment."</td>
+          <td class="why">The original names a mechanism without explaining it — the user has to tap through to learn what it means. The rewrite states the trade-off plainly (pay more now, unlock more spending power) so the value is clear before tapping. This exact phrase recurs at Screens 5 and 7 — same fix applies each time.</td>
+        </tr>
+      </table>
     </div>
   </section>
 
@@ -615,6 +667,28 @@
           <div class="q-badges"><span class="badge badge--purple">Impact: Medium</span><span class="badge badge--ghost">Effort: Medium</span></div>
         </div>
       </div>
+    </div>
+  </section>
+
+  <section class="slide" id="s3-copy">
+    <div class="slide-tag">Screen 3 · Copy &amp; Tone</div>
+    <div class="slide-num">CopyLab lens</div>
+    <div class="body body--wide">
+      <div class="t-eyebrow">Emotional states in play</div>
+      <h2 class="t-headline">Copy &amp; tone.</h2>
+      <div class="state-badges">
+        <span class="badge badge--ghost">Confusion</span>
+        <span class="badge badge--ghost">Uncertainty / Ambiguity</span>
+      </div>
+      <table class="copy-table">
+        <tr><th>Element</th><th>Original</th><th>Improved</th><th>Why</th></tr>
+        <tr>
+          <td>Transaction row</td>
+          <td class="orig">"June 9, 2023" / "$40.07" (no label at all)</td>
+          <td class="improved">"Available until June 9, 2023" / "$40.07"</td>
+          <td class="why">Two floating numbers with zero label copy force the user to guess what the date represents (issued? expires?). One short phrase resolves the ambiguity completely — this is a missing-copy gap, not a wording-quality one.</td>
+        </tr>
+      </table>
     </div>
   </section>
 
@@ -1013,6 +1087,28 @@
           <div class="q-badges"><span class="badge badge--purple">Impact: Low</span><span class="badge badge--ghost">Effort: Medium</span></div>
         </div>
       </div>
+    </div>
+  </section>
+
+  <section class="slide" id="s6-copy">
+    <div class="slide-tag">Screen 6 · Copy &amp; Tone</div>
+    <div class="slide-num">CopyLab lens</div>
+    <div class="body body--wide">
+      <div class="t-eyebrow">Emotional states in play</div>
+      <h2 class="t-headline">Copy &amp; tone.</h2>
+      <div class="state-badges">
+        <span class="badge badge--ghost">Motivation / Value Perception</span>
+        <span class="badge badge--ghost">Consistency</span>
+      </div>
+      <table class="copy-table">
+        <tr><th>Element</th><th>Original</th><th>Improved</th><th>Why</th></tr>
+        <tr>
+          <td>4-payment (default) description</td>
+          <td class="orig">"Pay biweekly over 6 weeks"</td>
+          <td class="improved">"Pay biweekly over 6 weeks — our most balanced option"</td>
+          <td class="why">The 2-payment option states a benefit ("Lower fees"); the pre-selected default states none, just mechanics. Giving the default the same benefit-oriented register keeps copy consistent across all choices in the same list, and reinforces why it's the recommended one.</td>
+        </tr>
+      </table>
     </div>
   </section>
 
