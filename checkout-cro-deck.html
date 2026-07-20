@@ -24,7 +24,7 @@
   .slide.active { opacity: 1; pointer-events: all; }
 
   .slide-tag { position: absolute; top: 32px; left: 44px; font-size: 11px; font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase; color: var(--confidence); opacity: 0.4; }
-  .slide-num { position: absolute; top: 32px; right: 44px; font-size: 11px; font-weight: 500; color: var(--confidence); opacity: 0.3; font-variant-numeric: tabular-nums; }
+  .slide-num { display: none; }
 
   .body { flex: 1; display: flex; flex-direction: column; padding: 84px 96px 108px; justify-content: center; }
   .body--center { align-items: center; text-align: center; }
@@ -1528,6 +1528,12 @@
     document.getElementById('nav-counter').textContent = (current+1)+' / '+total;
     document.getElementById('prev-btn').disabled = (current===0);
     document.getElementById('next-btn').disabled = (current===total-1);
+    updateActionBtnsVisibility();
+  }
+  function updateActionBtnsVisibility() {
+    var btns = document.querySelector('.action-btns');
+    if (!btns) return;
+    btns.style.display = (slides[current].id === 's-cover') ? 'none' : 'flex';
   }
   function goSlide(dir) { goTo(current+dir); }
   document.addEventListener('keydown', function(e) {
@@ -1537,6 +1543,7 @@
   document.getElementById('nav-counter').textContent = '1 / '+total;
   document.getElementById('next-btn').disabled = (total<=1);
   refreshJumpNav();
+  updateActionBtnsVisibility();
 </script>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
