@@ -95,6 +95,45 @@
   .copy-table td.improved { color: var(--purple); font-weight: 500; }
   .copy-table td.why { color: var(--gray-800); font-size: 13px; }
   .state-badges { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+
+  .action-btns { position: fixed; top: 24px; right: 32px; display: flex; gap: 8px; z-index: 250; }
+  .action-btn { width: 40px; height: 40px; border-radius: 50%; background: rgba(26,8,38,0.82); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid rgba(255,255,255,0.12); display: flex; align-items: center; justify-content: center; cursor: pointer; color: rgba(255,255,255,0.8); transition: all 0.15s; padding: 0; }
+  .action-btn:hover { background: rgba(101,66,190,0.9); color: white; }
+  .action-btn svg { width: 19px; height: 19px; }
+
+  .modal-overlay { position: fixed; inset: 0; background: rgba(26,8,38,0.55); z-index: 500; display: none; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
+  .modal-overlay.open { display: flex; }
+  .comment-modal { background: var(--white); border-radius: 20px; width: 90%; max-width: 440px; padding: 32px; box-shadow: 0 24px 64px rgba(26,8,38,0.3); font-family: var(--font); }
+  .comment-modal h3 { font-size: 20px; font-weight: 500; color: var(--confidence); margin-bottom: 6px; }
+  .modal-context { font-size: 13px; color: var(--purple); font-weight: 500; margin-bottom: 20px; }
+  .category-picker { display: flex; gap: 8px; margin-bottom: 16px; }
+  .category-pill { flex: 1; padding: 10px 10px; border-radius: 10px; border: 1.5px solid var(--gray-400); background: var(--white); font-family: var(--font); font-size: 12.5px; font-weight: 500; color: var(--gray-800); cursor: pointer; text-align: center; transition: all 0.15s; }
+  .category-pill.active { border-color: var(--purple); background: rgba(101,66,190,0.08); color: var(--purple); }
+  .comment-input, .comment-author-input { width: 100%; border-radius: 12px; border: 1.5px solid var(--gray-400); padding: 12px 14px; font-family: var(--font); font-size: 14px; outline: none; box-sizing: border-box; color: var(--confidence); }
+  .comment-input { min-height: 96px; resize: vertical; }
+  .comment-author-input { margin-top: 10px; font-size: 13px; padding: 10px 14px; }
+  .comment-input:focus, .comment-author-input:focus, .category-pill:focus { border-color: var(--purple); }
+  .modal-actions { display: flex; gap: 10px; margin-top: 20px; }
+  .modal-btn { flex: 1; padding: 12px; border-radius: 10px; font-family: var(--font); font-size: 14px; font-weight: 500; cursor: pointer; transition: opacity 0.15s; }
+  .modal-btn--cancel { border: 1.5px solid var(--gray-400); background: var(--white); color: var(--confidence); }
+  .modal-btn--submit { border: none; background: var(--purple); color: white; }
+  .modal-btn:hover { opacity: 0.85; }
+
+  .activity-flyout { position: fixed; top: 0; right: 0; height: 100vh; width: 400px; max-width: 90vw; background: var(--white); box-shadow: -12px 0 40px rgba(26,8,38,0.18); z-index: 450; transform: translateX(100%); transition: transform 0.35s cubic-bezier(0.4,0,0.2,1); display: flex; flex-direction: column; font-family: var(--font); }
+  .activity-flyout.open { transform: translateX(0); }
+  .activity-header { padding: 24px; border-bottom: 1px solid var(--gray-400); display: flex; align-items: center; justify-content: space-between; flex: 0 0 auto; }
+  .activity-header strong { font-size: 16px; color: var(--confidence); font-weight: 500; }
+  .activity-close { background: none; border: none; cursor: pointer; font-size: 22px; line-height: 1; color: var(--gray-800); opacity: 0.6; }
+  .activity-close:hover { opacity: 1; }
+  .activity-list { flex: 1; overflow-y: auto; padding: 8px 24px 24px; }
+  .activity-item { padding: 16px 0; border-bottom: 1px solid var(--gray-400); }
+  .activity-item-meta { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; flex-wrap: wrap; }
+  .activity-item-group { font-size: 12px; color: var(--purple); font-weight: 500; }
+  .activity-item-text { font-size: 14px; color: var(--confidence); line-height: 1.5; }
+  .activity-item-author { font-size: 12px; color: var(--gray-800); opacity: 0.55; margin-top: 6px; }
+
+  .toast { position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%) translateY(16px); background: var(--confidence); color: white; padding: 14px 26px; border-radius: 100px; font-size: 14px; font-weight: 500; font-family: var(--font); box-shadow: 0 12px 32px rgba(26,8,38,0.35); z-index: 600; opacity: 0; pointer-events: none; transition: all 0.3s ease; }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 </style>
 </head>
 <body>
@@ -234,6 +273,45 @@
     80%{transform:translateX(6px)}
   }
 </style>
+
+<div class="action-btns">
+  <button class="action-btn" id="comment-btn" title="Suggest a pitfall, opportunity, or question" onclick="openCommentModal()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+  </button>
+  <button class="action-btn" id="activity-btn" title="View submitted suggestions" onclick="openActivityFlyout()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg>
+  </button>
+</div>
+
+<div class="modal-overlay" id="comment-overlay" onclick="if(event.target===this)closeCommentModal()">
+  <div class="comment-modal">
+    <h3>Suggest an addition</h3>
+    <div class="modal-context" id="modal-context">For: —</div>
+    <div class="category-picker" id="category-picker">
+      <div class="category-pill" data-cat="pitfall" onclick="selectCategory('pitfall')">Pitfall</div>
+      <div class="category-pill" data-cat="opportunity" onclick="selectCategory('opportunity')">Opportunity</div>
+      <div class="category-pill" data-cat="question" onclick="selectCategory('question')">Question to Ask</div>
+    </div>
+    <textarea id="comment-text" class="comment-input" placeholder="What should we add?"></textarea>
+    <input id="comment-author" class="comment-author-input" type="text" placeholder="Your name (optional)">
+    <div class="modal-actions">
+      <button class="modal-btn modal-btn--cancel" onclick="closeCommentModal()">Cancel</button>
+      <button class="modal-btn modal-btn--submit" onclick="submitComment()">Submit</button>
+    </div>
+  </div>
+</div>
+
+<div class="activity-flyout" id="activity-flyout">
+  <div class="activity-header">
+    <strong>Activity</strong>
+    <button class="activity-close" onclick="closeActivityFlyout()">&times;</button>
+  </div>
+  <div class="activity-list" id="activity-list">
+    <p class="activity-empty" style="color:var(--gray-800);opacity:0.5;font-size:13px;">Loading...</p>
+  </div>
+</div>
+
+<div class="toast" id="toast">Thanks — your suggestion was added.</div>
 
 <div class="deck" id="deck">
 
@@ -1459,6 +1537,153 @@
   document.getElementById('nav-counter').textContent = '1 / '+total;
   document.getElementById('next-btn').disabled = (total<=1);
   refreshJumpNav();
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script>
+  // Swap these in once the Supabase project exists (see README for setup SQL).
+  var SUPABASE_URL = 'YOUR_PROJECT_URL';
+  var SUPABASE_ANON_KEY = 'YOUR_ANON_KEY';
+  var sbReady = SUPABASE_URL.indexOf('YOUR_PROJECT') === -1;
+  var sb = sbReady ? supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+
+  var selectedCategory = null;
+
+  function escapeHtml(str) {
+    var div = document.createElement('div');
+    div.textContent = str || '';
+    return div.innerHTML;
+  }
+
+  function getCurrentGroupInfo() {
+    for (var i = current; i >= 0; i--) {
+      if (slides[i].dataset.kind === 'overview') {
+        return { title: slides[i].dataset.title, prefix: slides[i].id.replace('-overview', '') };
+      }
+    }
+    return { title: 'General', prefix: null };
+  }
+
+  function findPrefixByTitle(title) {
+    for (var i = 0; i < slides.length; i++) {
+      if (slides[i].dataset.kind === 'overview' && slides[i].dataset.title === title) {
+        return slides[i].id.replace('-overview', '');
+      }
+    }
+    return null;
+  }
+
+  function openCommentModal() {
+    var info = getCurrentGroupInfo();
+    document.getElementById('modal-context').textContent = 'For: ' + info.title;
+    document.getElementById('comment-overlay').classList.add('open');
+  }
+  function closeCommentModal() {
+    document.getElementById('comment-overlay').classList.remove('open');
+    selectedCategory = null;
+    document.querySelectorAll('.category-pill').forEach(function (p) { p.classList.remove('active'); });
+    document.getElementById('comment-text').value = '';
+    document.getElementById('comment-author').value = '';
+  }
+  function selectCategory(cat) {
+    selectedCategory = cat;
+    document.querySelectorAll('.category-pill').forEach(function (p) { p.classList.toggle('active', p.dataset.cat === cat); });
+  }
+
+  function submitComment() {
+    var text = document.getElementById('comment-text').value.trim();
+    var author = document.getElementById('comment-author').value.trim() || 'Anonymous';
+    if (!selectedCategory) { alert('Pick a category first — Pitfall, Opportunity, or Question to Ask.'); return; }
+    if (!text) { alert('Add a comment first.'); return; }
+    var info = getCurrentGroupInfo();
+    var row = { frame_group: info.title, category: selectedCategory, comment: text, author_name: author };
+
+    var afterSubmit = function () {
+      injectCommentIntoSlide(info.prefix, selectedCategory, row);
+      renderActivityItem(row, new Date().toISOString(), true);
+      closeCommentModal();
+      showToast();
+    };
+
+    if (sb) {
+      sb.from('comments').insert(row).then(function (result) {
+        if (result.error) {
+          alert('Something went wrong submitting — please try again.');
+          console.error(result.error);
+          return;
+        }
+        afterSubmit();
+      });
+    } else {
+      console.warn('Supabase not configured yet — comment was not persisted.');
+      afterSubmit();
+    }
+  }
+
+  function showToast() {
+    var t = document.getElementById('toast');
+    t.classList.add('show');
+    setTimeout(function () { t.classList.remove('show'); }, 3000);
+  }
+
+  function injectCommentIntoSlide(prefix, category, row) {
+    if (!prefix) return;
+    var targetId = category === 'pitfall' ? prefix + '-pitfalls' : category === 'opportunity' ? prefix + '-opportunities' : prefix + '-questions';
+    var section = document.getElementById(targetId);
+    if (!section) return;
+    var list = section.querySelector('.q-list');
+    if (!list) return;
+    var item = document.createElement('div');
+    item.className = 'q-item';
+    item.innerHTML = '<div class="q-num">V</div><div><div class="q-text">' + escapeHtml(row.comment) + '</div><div class="q-sub">Suggested by ' + escapeHtml(row.author_name) + ' &middot; ' + new Date().toLocaleDateString() + '</div></div><div class="q-badges"><span class="badge badge--ghost">Visitor suggestion</span></div>';
+    list.appendChild(item);
+  }
+
+  function renderActivityItem(row, createdAt, prepend) {
+    var list = document.getElementById('activity-list');
+    var empty = list.querySelector('.activity-empty');
+    if (empty) empty.remove();
+    var catLabel = row.category === 'pitfall' ? 'Pitfall' : row.category === 'opportunity' ? 'Opportunity' : 'Question';
+    var el = document.createElement('div');
+    el.className = 'activity-item';
+    el.innerHTML = '<div class="activity-item-meta"><span class="badge badge--ghost">' + catLabel + '</span><span class="activity-item-group">' + escapeHtml(row.frame_group) + '</span></div><div class="activity-item-text">' + escapeHtml(row.comment) + '</div><div class="activity-item-author">' + escapeHtml(row.author_name) + ' &middot; ' + new Date(createdAt).toLocaleString() + '</div>';
+    if (prepend) { list.insertBefore(el, list.firstChild); } else { list.appendChild(el); }
+  }
+
+  function openActivityFlyout() {
+    document.getElementById('activity-flyout').classList.add('open');
+  }
+  function closeActivityFlyout() {
+    document.getElementById('activity-flyout').classList.remove('open');
+  }
+
+  function loadAndInjectAllComments() {
+    var list = document.getElementById('activity-list');
+    if (!sb) {
+      list.innerHTML = '<p class="activity-empty" style="color:var(--gray-800);opacity:0.5;font-size:13px;">Backend not configured yet — see README for setup.</p>';
+      return;
+    }
+    sb.from('comments').select('*').order('created_at', { ascending: false }).then(function (result) {
+      if (result.error) {
+        list.innerHTML = '<p class="activity-empty" style="color:var(--gray-800);opacity:0.5;font-size:13px;">Couldn\'t load activity.</p>';
+        console.error(result.error);
+        return;
+      }
+      var rows = result.data;
+      if (!rows.length) {
+        list.innerHTML = '<p class="activity-empty" style="color:var(--gray-800);opacity:0.5;font-size:13px;">No suggestions yet — be the first.</p>';
+        return;
+      }
+      list.innerHTML = '';
+      rows.forEach(function (row) { renderActivityItem(row, row.created_at, false); });
+      rows.slice().reverse().forEach(function (row) {
+        var prefix = findPrefixByTitle(row.frame_group);
+        injectCommentIntoSlide(prefix, row.category, row);
+      });
+    });
+  }
+
+  loadAndInjectAllComments();
 </script>
 </body>
 </html>
